@@ -3,68 +3,566 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>排程可視化系統</title>
+    <title>專案排程・可自訂色塊版</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f9f9f9; }
-        .container { max-width: 1200px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { color: #333; text-align: center; }
-        #gantt { margin-top: 20px; overflow-x: auto; }
-        /* 狀態顏色設定 */
-        .gantt .bar-progress.預計 { fill: #3498db; } /* 藍色 */
-        .gantt .bar-progress.進行中 { fill: #2ecc71; } /* 綠色 */
-        .gantt .bar-progress.延遲 { fill: #e74c3c; } /* 紅色 */
+        :root {
+            --bg: #f2f1ef;
+            --panel: #ffffff;
+            --panel-soft: #f6f5f3;
+            --ink: #282727;
+            --ink-soft: #7e7a74;
+            --accent: #f06f2a;
+            --accent-soft: rgba(240, 111, 42, 0.15);
+            --line: rgba(28, 27, 26, 0.11);
+            --radius: 18px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Noto Sans TC', 'Segoe UI', sans-serif;
+            padding: 20px;
+            background: var(--bg);
+            color: var(--ink);
+        }
+
+        .container {
+            max-width: 1480px;
+            margin: auto;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            padding: 20px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.06);
+        }
+
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            margin: 0;
+            letter-spacing: 1px;
+            font-size: clamp(1.4rem, 2.4vw, 2rem);
+        }
+
+        .subtitle {
+            margin-top: 8px;
+            color: #4d4a46;
+            line-height: 1.6;
+            max-width: 900px;
+        }
+
+        .surface {
+            display: grid;
+            grid-template-columns: 260px 1fr 280px;
+            gap: 14px;
+            align-items: start;
+        }
+
+        .left-panel,
+        .right-panel {
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 14px;
+        }
+
+        .month-title { margin: 0; font-size: 1.35rem; }
+
+        .mini-calendar {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--ink-soft);
+        }
+
+        .mini-calendar span {
+            text-align: center;
+            padding: 6px 0;
+            border-radius: 8px;
+            background: #fff;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .mini-calendar .today {
+            background: #ffe0ce;
+            color: #b6470f;
+            font-weight: 700;
+        }
+
+        .status-board {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 14px 0;
+        }
+
+        .status-card {
+            min-width: 124px;
+            background: #fff;
+            border: 1px solid var(--line);
+            padding: 12px 14px;
+            border-radius: 14px;
+        }
+
+        .status-card .label { color: var(--ink-soft); font-size: 0.84rem; }
+        .status-card .value { margin-top: 8px; font-size: 1.5rem; font-weight: 700; }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 10px 0 12px;
+        }
+
+        .chip-list { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .chip-btn {
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--ink);
+            border-radius: 999px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .chip-btn.active,
+        .chip-btn:hover {
+            border-color: var(--accent);
+            background: var(--accent-soft);
+            transform: translateY(-1px);
+        }
+
+        #gantt-wrap {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 14px;
+            overflow-x: auto;
+        }
+
+        .gantt .grid-row,
+        .gantt .grid-header { fill: #faf9f8; }
+
+        .gantt .lower-text,
+        .gantt .upper-text,
+        .gantt .bar-label,
+        .gantt .tick text { fill: #3a3835; }
+
+        .gantt .today-highlight { fill: rgba(240, 111, 42, 0.08); }
+        .gantt .bar-progress { fill: rgba(0,0,0,0.15); }
+
+        .gantt .bar-wrapper.status-延遲 .bar {
+            stroke: #ff8b66;
+            stroke-width: 2;
+            stroke-dasharray: 4;
+        }
+
+        .popup-wrapper {
+            border-radius: 12px !important;
+            border: 1px solid var(--line) !important;
+            background: #fff !important;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18) !important;
+        }
+
+        .task-popup { color: #242321; min-width: 240px; }
+
+        .task-popup .meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.88rem;
+            color: #666059;
+        }
+
+        .tag {
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: var(--accent-soft);
+            border: 1px solid rgba(255, 122, 26, 0.5);
+            color: #9a450d;
+        }
+
+        #project-legend { display: grid; gap: 8px; }
+
+        .legend-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .legend-head h2 { margin: 0; color: #5f5a53; font-size: 0.95rem; }
+
+        .legend-item {
+            display: grid;
+            grid-template-columns: 16px 1fr 26px auto;
+            gap: 8px;
+            align-items: center;
+            border-bottom: 1px dashed rgba(0,0,0,0.12);
+            padding: 8px 0;
+        }
+
+        .legend-item:last-child { border-bottom: none; }
+
+        .swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2);
+        }
+
+        .legend-count { color: var(--ink-soft); font-size: 0.85rem; }
+
+        .legend-item input[type="color"] {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: transparent;
+            padding: 0;
+            cursor: pointer;
+        }
+
+        .btn-soft {
+            border: 1px solid var(--line);
+            background: #fff;
+            border-radius: 999px;
+            padding: 6px 10px;
+            cursor: pointer;
+            color: #5f5a53;
+        }
+
+        .right-panel section {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .right-panel h3 { margin: 0 0 10px; font-size: 1rem; }
+
+        .help-note {
+            margin: 0;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            color: #64605a;
+        }
+
+        @media (max-width: 980px) {
+            .surface { grid-template-columns: 1fr; }
+            .left-panel, .right-panel { order: 2; }
+            #main-center { order: 1; }
+        }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <h1>📅 專案排程總覽 (Gantt)</h1>
-    <div id="gantt"></div>
+    <div class="hero">
+        <div>
+            <h1>📅 專案排程</h1>
+            <p class="subtitle">參考你附圖的三欄節奏：左側月曆、中央時程、右側摘要。你可以直接在右側自訂每個專案色塊。</p>
+        </div>
+    </div>
+
+    <div class="surface">
+        <aside class="left-panel">
+            <h2 class="month-title" id="month-label">月份</h2>
+            <div class="mini-calendar" id="mini-calendar"></div>
+        </aside>
+
+        <main id="main-center">
+            <div class="status-board" id="status-board"></div>
+            <div class="toolbar">
+                <div class="chip-list" id="status-filter"></div>
+            </div>
+            <div id="gantt-wrap">
+                <div id="gantt"></div>
+            </div>
+        </main>
+
+        <aside class="right-panel">
+            <section>
+                <h3>專案色塊設定</h3>
+                <div id="project-legend">
+                    <div class="legend-head">
+                        <h2>色塊 / 任務數</h2>
+                        <button id="reset-colors" class="btn-soft">重置色塊</button>
+                    </div>
+                    <div id="legend-list"></div>
+                </div>
+            </section>
+            <section>
+                <h3>資料欄位提醒</h3>
+                <p class="help-note">若你要改 Apps Script 或 Google Sheet，建議至少帶：<b>專案名稱</b>、<b>品項/任務</b>、<b>預計開始</b>、<b>預計結束</b>、<b>狀態</b>。</p>
+            </section>
+        </aside>
+    </div>
 </div>
 
 <script>
-    // ⚠️ 替換成你剛剛在 Apps Script 複製的 Web App URL
-    const API_URL = "https://script.google.com/macros/s/AKfycbxTVMC1MKxpIcqUoQj4IUr85KPc0RAMkuJRlRenBJFyh56L_U34vewRccQA8N1ITSosvA/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbxTVMC1MKxpIcqUoQj4IUr85KPc0RAMkuJRlRenBJFyh56L_U34vewRccQA8N1ITSosvA/exec";
+    const STORAGE_KEY = 'project-color-overrides-v1';
+
+    const PALETTE = [
+        '#5DADE2',
+        '#58D68D',
+        '#F5B041',
+        '#AF7AC5',
+        '#EC7063',
+        '#48C9B0',
+        '#F1948A',
+        '#7FB3D5',
+        '#A3E4D7',
+        '#F8C471'
+    ];
+
+    let rawTasks = [];
+    let gantt;
+    let currentStatus = '全部';
+    let colorOverrides = loadColorOverrides();
+
+    const slugify = (text = '') => text.toString().replace(/[^\w\u4e00-\u9fff-]/g, '-');
+
+    function loadColorOverrides() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        } catch (_) {
+            return {};
+        }
+    }
+
+    function saveColorOverrides() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(colorOverrides));
+    }
+
+    function buildMiniCalendar() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const today = now.getDate();
+        document.getElementById('month-label').textContent = `${year}年 ${month + 1}月`;
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const labels = ['日', '一', '二', '三', '四', '五', '六'];
+        const cells = [];
+
+        labels.forEach(label => cells.push(`<span style="font-weight:700;background:transparent;border:none">${label}</span>`));
+        for (let i = 0; i < firstDay; i++) cells.push('<span style="background:transparent;border:none"></span>');
+        for (let day = 1; day <= daysInMonth; day++) cells.push(`<span class="${day === today ? 'today' : ''}">${day}</span>`);
+
+        document.getElementById('mini-calendar').innerHTML = cells.join('');
+    }
+
+    function pickProjectName(item) {
+        return item['專案'] || item['專案名稱'] || item['Project'] || (item['品項'] || '未分類').split(/[／/|-]/)[0].trim() || '未分類';
+    }
+
+    function normalizeDate(value) {
+        if (!value) return null;
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return null;
+        return date.toISOString().split('T')[0];
+    }
+
+    function buildProjectMap(items) {
+        const projectNames = [...new Set(items.map(pickProjectName))];
+        return projectNames.reduce((acc, name, index) => {
+            const preset = PALETTE[index % PALETTE.length];
+            acc[name] = { color: colorOverrides[name] || preset };
+            return acc;
+        }, {});
+    }
+
+    function createDynamicColorStyle(projectMap) {
+        const styleId = 'dynamic-project-colors';
+        const old = document.getElementById(styleId);
+        if (old) old.remove();
+
+        const css = Object.entries(projectMap).map(([name, config]) => {
+            const slug = slugify(name);
+            return `.gantt .bar-wrapper.project-${slug} .bar{fill:${config.color};}`;
+        }).join('\n');
+
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.textContent = css;
+        document.head.appendChild(style);
+    }
+
+    function buildStatusBoard(items) {
+        const stats = {
+            '總任務': items.length,
+            '進行中': items.filter(i => i.status === '進行中').length,
+            '延遲': items.filter(i => i.status === '延遲').length,
+            '完成': items.filter(i => i.status === '完成').length
+        };
+
+        document.getElementById('status-board').innerHTML = Object.entries(stats)
+            .map(([label, value]) => `
+                <article class="status-card">
+                    <div class="label">${label}</div>
+                    <div class="value">${value}</div>
+                </article>
+            `)
+            .join('');
+    }
+
+    function buildStatusFilter(items) {
+        const statusSet = ['全部', ...new Set(items.map(item => item.status))];
+        const container = document.getElementById('status-filter');
+        container.innerHTML = statusSet.map(status => `
+            <button class="chip-btn ${status === currentStatus ? 'active' : ''}" data-status="${status}">${status}</button>
+        `).join('');
+
+        container.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentStatus = btn.dataset.status;
+                renderGantt();
+                buildStatusFilter(rawTasks);
+            });
+        });
+    }
+
+    function buildLegend(items, projectMap) {
+        const grouped = items.reduce((acc, task) => {
+            acc[task.project] = (acc[task.project] || 0) + 1;
+            return acc;
+        }, {});
+
+        const list = Object.entries(grouped).sort((a, b) => b[1] - a[1]);
+        document.getElementById('legend-list').innerHTML = list.map(([project, count]) => {
+            const color = projectMap[project].color;
+            return `
+                <div class="legend-item">
+                    <span class="swatch" style="background:${color}"></span>
+                    <div>${project}</div>
+                    <input type="color" value="${color}" data-project="${project}" title="自訂色塊">
+                    <span class="legend-count">${count}</span>
+                </div>
+            `;
+        }).join('');
+
+        document.querySelectorAll('#legend-list input[type="color"]').forEach(input => {
+            input.addEventListener('input', (e) => {
+                colorOverrides[e.target.dataset.project] = e.target.value;
+                saveColorOverrides();
+                renderGantt();
+            });
+        });
+    }
+
+    function toGanttTask(task) {
+        const slug = slugify(task.project);
+        const status = task.status || '預計';
+        return {
+            id: task.id,
+            name: `${task.name}`,
+            start: task.start,
+            end: task.end,
+            progress: status === '完成' ? 100 : (status === '進行中' ? 58 : 18),
+            dependencies: '',
+            custom_class: `project-${slug} status-${status}`,
+            _project: task.project,
+            _status: task.status
+        };
+    }
+
+    function renderGantt() {
+        const projectMap = buildProjectMap(rawTasks);
+        createDynamicColorStyle(projectMap);
+
+        const filtered = currentStatus === '全部'
+            ? rawTasks
+            : rawTasks.filter(task => task.status === currentStatus);
+
+        const tasks = filtered.map(task => toGanttTask(task));
+        document.getElementById('gantt').innerHTML = '';
+
+        if (!tasks.length) {
+            document.getElementById('gantt').innerHTML = '<p style="padding:18px;color:var(--ink-soft)">此狀態目前沒有任務。</p>';
+            buildLegend(rawTasks, projectMap);
+            return;
+        }
+
+        gantt = new Gantt('#gantt', tasks, {
+            view_mode: 'Day',
+            language: 'zh',
+            popup: (task) => {
+                const duration = Math.ceil((new Date(task.end) - new Date(task.start)) / (1000 * 60 * 60 * 24)) + 1;
+                return `
+                    <div class="task-popup">
+                        <strong>${task.name}</strong>
+                        <div class="tag">${task._project}・${task._status}</div>
+                        <div class="meta">
+                            <span>${task.start} → ${task.end}</span>
+                            <span>${duration} 天</span>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        buildLegend(filtered, projectMap);
+    }
+
+    function bindStaticActions() {
+        document.getElementById('reset-colors').addEventListener('click', () => {
+            colorOverrides = {};
+            saveColorOverrides();
+            renderGantt();
+        });
+    }
 
     async function loadGantt() {
         try {
             const response = await fetch(API_URL);
             const data = await response.json();
-            
-            // 將 Google Sheets 資料轉換成 Frappe Gantt 接受的格式
-            const tasks = data.map((item, index) => {
-                // 根據狀態決定進度條顏色 (透過 custom_class)
-                let customClass = "預計";
-                if(item["狀態"] === "進行中" || item["狀態"] === "完成") customClass = "進行中";
-                if(item["狀態"] === "延遲") customClass = "延遲";
+
+            rawTasks = data.map((item, index) => {
+                const start = normalizeDate(item['預計開始'] || item['開始'] || item['Start']);
+                const end = normalizeDate(item['預計結束'] || item['結束'] || item['End']);
+                const status = item['狀態'] || '預計';
+                const project = pickProjectName(item);
 
                 return {
-                    id: item["任務ID"] || `Task_${index}`,
-                    name: `${item["品項"]} (${item["狀態"]})`,
-                    start: item["預計開始"].split('T')[0], // 格式化日期
-                    end: item["預計結束"].split('T')[0],
-                    progress: item["狀態"] === "完成" ? 100 : (item["狀態"] === "進行中" ? 50 : 0),
-                    dependencies: '', // 若有相依性可以在這設定
-                    custom_class: customClass
+                    id: item['任務ID'] || `Task_${index + 1}`,
+                    name: item['品項'] || item['任務'] || `未命名任務 ${index + 1}`,
+                    start,
+                    end,
+                    status,
+                    project
                 };
-            }).filter(task => task.start && task.end); // 過濾掉沒有日期的空資料
+            }).filter(task => task.start && task.end);
 
-            // 渲染甘特圖
-            var gantt = new Gantt("#gantt", tasks, {
-                view_mode: 'Day',
-                language: 'zh'
-            });
-
+            buildStatusBoard(rawTasks);
+            buildStatusFilter(rawTasks);
+            renderGantt();
         } catch (error) {
-            console.error("讀取資料失敗:", error);
-            document.getElementById("gantt").innerHTML = "無法載入排程資料，請確認 API 網址是否正確。";
+            console.error('讀取資料失敗:', error);
+            document.getElementById('gantt').innerHTML = '無法載入排程資料，請確認 API 網址是否正確或 Apps Script 是否已部署為可公開存取。';
         }
     }
 
+    buildMiniCalendar();
+    bindStaticActions();
     loadGantt();
 </script>
-
 </body>
 </html>
