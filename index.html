@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>排程可視化系統</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f9f9f9; }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #333; text-align: center; }
+        #gantt { margin-top: 20px; overflow-x: auto; }
+        /* 狀態顏色設定 */
+        .gantt .bar-progress.預計 { fill: #3498db; } /* 藍色 */
+        .gantt .bar-progress.進行中 { fill: #2ecc71; } /* 綠色 */
+        .gantt .bar-progress.延遲 { fill: #e74c3c; } /* 紅色 */
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📅 專案排程總覽 (Gantt)</h1>
+    <div id="gantt"></div>
+</div>
+
+<script>
+    // ⚠️ 替換成你剛剛在 Apps Script 複製的 Web App URL
+    const API_URL = "你的_APPS_SCRIPT_WEB_APP_URL"; 
+
+    async function loadGantt() {
+        try {
+            const response = await fetch(API_URL);
+            const data = await response.json();
+            
+            // 將 Google Sheets 資料轉換成 Frappe Gantt 接受的格式
+            const tasks = data.map((item, index) => {
+                // 根據狀態決定進度條顏色 (透過 custom_class)
+                let customClass = "預計";
+                if(item["狀態"] === "進行中" || item["狀態"] === "完成") customClass = "進行中";
+                if(item["狀態"] === "延遲") customClass = "延遲";
+
+                return {
+                    id: item["任務ID"] || `Task_${index}`,
+                    name: `${item["品項"]} (${item["狀態"]})`,
+                    start: item["預計開始"].split('T')[0], // 格式化日期
+                    end: item["預計結束"].split('T')[0],
+                    progress: item["狀態"] === "完成" ? 100 : (item["狀態"] === "進行中" ? 50 : 0),
+                    dependencies: '', // 若有相依性可以在這設定
+                    custom_class: customClass
+                };
+            }).filter(task => task.start && task.end); // 過濾掉沒有日期的空資料
+
+            // 渲染甘特圖
+            var gantt = new Gantt("#gantt", tasks, {
+                view_mode: 'Day',
+                language: 'zh'
+            });
+
+        } catch (error) {
+            console.error("讀取資料失敗:", error);
+            document.getElementById("gantt").innerHTML = "無法載入排程資料，請確認 API 網址是否正確。";
+        }
+    }
+
+    loadGantt();
+</script>
+
+</body>
+</html>
