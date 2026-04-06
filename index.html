@@ -3,68 +3,466 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>排程可視化系統</title>
+    <title>典籍色排程・反主流專案日曆</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f9f9f9; }
-        .container { max-width: 1200px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { color: #333; text-align: center; }
-        #gantt { margin-top: 20px; overflow-x: auto; }
-        /* 狀態顏色設定 */
-        .gantt .bar-progress.預計 { fill: #3498db; } /* 藍色 */
-        .gantt .bar-progress.進行中 { fill: #2ecc71; } /* 綠色 */
-        .gantt .bar-progress.延遲 { fill: #e74c3c; } /* 紅色 */
+        :root {
+            --bg: #151515;
+            --panel: #1f1f1f;
+            --panel-soft: #262626;
+            --ink: #f2eee8;
+            --ink-soft: #b9b2a7;
+            --accent: #ff7a1a;
+            --accent-soft: rgba(255, 122, 26, 0.2);
+            --line: rgba(255, 255, 255, 0.08);
+            --radius: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Noto Sans TC', 'Segoe UI', sans-serif;
+            padding: 28px;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(255, 122, 26, 0.18), transparent 30%),
+                radial-gradient(circle at 90% 10%, rgba(255, 214, 175, 0.11), transparent 20%),
+                var(--bg);
+            color: var(--ink);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+            background: linear-gradient(145deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.45);
+        }
+
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            margin: 0;
+            letter-spacing: 1px;
+            font-size: clamp(1.5rem, 2.4vw, 2.2rem);
+        }
+
+        .subtitle {
+            margin-top: 8px;
+            color: var(--ink-soft);
+            line-height: 1.6;
+            max-width: 860px;
+        }
+
+        .status-board {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .status-card {
+            min-width: 140px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            padding: 12px 14px;
+            border-radius: 14px;
+        }
+
+        .status-card .label {
+            color: var(--ink-soft);
+            font-size: 0.84rem;
+        }
+
+        .status-card .value {
+            margin-top: 8px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 12px 0 16px;
+        }
+
+        .chip-list {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .chip-btn {
+            border: 1px solid var(--line);
+            background: var(--panel-soft);
+            color: var(--ink);
+            border-radius: 999px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .chip-btn.active,
+        .chip-btn:hover {
+            border-color: var(--accent);
+            background: var(--accent-soft);
+            transform: translateY(-1px);
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr minmax(220px, 290px);
+            gap: 16px;
+            align-items: start;
+        }
+
+        #gantt-wrap {
+            background: #171717;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 14px;
+            overflow-x: auto;
+        }
+
+        #project-legend {
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--panel);
+            padding: 16px;
+        }
+
+        #project-legend h2 {
+            margin: 0 0 10px;
+            font-size: 1rem;
+            color: var(--ink-soft);
+        }
+
+        .legend-item {
+            display: grid;
+            grid-template-columns: 16px 1fr auto;
+            gap: 10px;
+            align-items: center;
+            border-bottom: 1px dashed rgba(255,255,255,0.08);
+            padding: 8px 0;
+        }
+
+        .legend-item:last-child {
+            border-bottom: none;
+        }
+
+        .swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
+        }
+
+        .legend-count {
+            color: var(--ink-soft);
+            font-size: 0.85rem;
+        }
+
+        .gantt .grid-row,
+        .gantt .grid-header {
+            fill: #191919;
+        }
+
+        .gantt .lower-text,
+        .gantt .upper-text,
+        .gantt .bar-label,
+        .gantt .tick text {
+            fill: #ece7df;
+        }
+
+        .gantt .today-highlight {
+            fill: rgba(255, 122, 26, 0.09);
+        }
+
+        .gantt .bar-progress {
+            fill: rgba(255,255,255,0.2);
+        }
+
+        .gantt .bar-wrapper.status-延遲 .bar {
+            stroke: #ff8b66;
+            stroke-width: 2;
+            stroke-dasharray: 4;
+        }
+
+        .popup-wrapper {
+            border-radius: 12px !important;
+            border: 1px solid var(--line) !important;
+            background: #1c1c1c !important;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35) !important;
+        }
+
+        .task-popup {
+            color: var(--ink);
+            min-width: 240px;
+        }
+
+        .task-popup .meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.88rem;
+            color: var(--ink-soft);
+        }
+
+        .tag {
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: var(--accent-soft);
+            border: 1px solid rgba(255, 122, 26, 0.5);
+            color: #ffd6af;
+        }
+
+        @media (max-width: 980px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <h1>📅 專案排程總覽 (Gantt)</h1>
-    <div id="gantt"></div>
+    <div class="hero">
+        <div>
+            <h1>📚 典籍色排程總覽</h1>
+            <p class="subtitle">不是冷冰冰的表格，而是有呼吸感的時程畫布。每個專案都有自己的「典籍色」，一眼辨識脈絡、節奏與風險。</p>
+        </div>
+    </div>
+
+    <div class="status-board" id="status-board"></div>
+
+    <div class="toolbar">
+        <div class="chip-list" id="status-filter"></div>
+    </div>
+
+    <div class="layout">
+        <div id="gantt-wrap">
+            <div id="gantt"></div>
+        </div>
+
+        <aside id="project-legend">
+            <h2>專案典籍色索引</h2>
+            <div id="legend-list"></div>
+        </aside>
+    </div>
 </div>
 
 <script>
-    // ⚠️ 替換成你剛剛在 Apps Script 複製的 Web App URL
-    const API_URL = "https://script.google.com/macros/s/AKfycbxTVMC1MKxpIcqUoQj4IUr85KPc0RAMkuJRlRenBJFyh56L_U34vewRccQA8N1ITSosvA/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbxTVMC1MKxpIcqUoQj4IUr85KPc0RAMkuJRlRenBJFyh56L_U34vewRccQA8N1ITSosvA/exec";
+
+    const PALETTE = [
+        { name: '赭石', color: '#B35C37' },
+        { name: '黛藍', color: '#2F4F72' },
+        { name: '松花', color: '#7A9D54' },
+        { name: '胭脂', color: '#AA3D52' },
+        { name: '石青', color: '#3C7494' },
+        { name: '琥珀', color: '#C4822E' },
+        { name: '藕荷', color: '#8B6D9C' },
+        { name: '玄墨', color: '#525252' }
+    ];
+
+    let rawTasks = [];
+    let gantt;
+    let currentStatus = '全部';
+
+    const slugify = (text = '') => text.toString().replace(/[^\w\u4e00-\u9fff-]/g, '-');
+
+    function pickProjectName(item) {
+        return item['專案'] || item['專案名稱'] || item['Project'] || (item['品項'] || '未分類').split(/[／/|-]/)[0].trim() || '未分類';
+    }
+
+    function normalizeDate(value) {
+        if (!value) return null;
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return null;
+        return date.toISOString().split('T')[0];
+    }
+
+    function buildProjectMap(items) {
+        const projectNames = [...new Set(items.map(pickProjectName))];
+        return projectNames.reduce((acc, name, index) => {
+            acc[name] = PALETTE[index % PALETTE.length];
+            return acc;
+        }, {});
+    }
+
+    function createDynamicColorStyle(projectMap) {
+        const styleId = 'dynamic-project-colors';
+        const old = document.getElementById(styleId);
+        if (old) old.remove();
+
+        const css = Object.entries(projectMap).map(([name, config]) => {
+            const slug = slugify(name);
+            return `.gantt .bar-wrapper.project-${slug} .bar{fill:${config.color};}`;
+        }).join('\n');
+
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.textContent = css;
+        document.head.appendChild(style);
+    }
+
+    function buildStatusBoard(items) {
+        const stats = {
+            '總任務': items.length,
+            '進行中': items.filter(i => i.status === '進行中').length,
+            '延遲': items.filter(i => i.status === '延遲').length,
+            '完成': items.filter(i => i.status === '完成').length
+        };
+
+        document.getElementById('status-board').innerHTML = Object.entries(stats)
+            .map(([label, value]) => `
+                <article class="status-card">
+                    <div class="label">${label}</div>
+                    <div class="value">${value}</div>
+                </article>
+            `)
+            .join('');
+    }
+
+    function buildStatusFilter(items) {
+        const statusSet = ['全部', ...new Set(items.map(item => item.status))];
+        const container = document.getElementById('status-filter');
+        container.innerHTML = statusSet.map(status => `
+            <button class="chip-btn ${status === currentStatus ? 'active' : ''}" data-status="${status}">${status}</button>
+        `).join('');
+
+        container.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentStatus = btn.dataset.status;
+                renderGantt();
+                buildStatusFilter(rawTasks);
+            });
+        });
+    }
+
+    function buildLegend(items, projectMap) {
+        const grouped = items.reduce((acc, task) => {
+            acc[task.project] = (acc[task.project] || 0) + 1;
+            return acc;
+        }, {});
+
+        const list = Object.entries(grouped).sort((a, b) => b[1] - a[1]);
+        document.getElementById('legend-list').innerHTML = list.map(([project, count]) => {
+            const color = projectMap[project].color;
+            const tone = projectMap[project].name;
+            return `
+                <div class="legend-item">
+                    <span class="swatch" style="background:${color}"></span>
+                    <div>${project}<br><small style="color:var(--ink-soft)">${tone}</small></div>
+                    <span class="legend-count">${count}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function toGanttTask(task, projectMap) {
+        const slug = slugify(task.project);
+        const status = task.status || '預計';
+        return {
+            id: task.id,
+            name: `${task.name}`,
+            start: task.start,
+            end: task.end,
+            progress: status === '完成' ? 100 : (status === '進行中' ? 58 : 18),
+            dependencies: '',
+            custom_class: `project-${slug} status-${status}`,
+            _project: task.project,
+            _status: task.status
+        };
+    }
+
+    function renderGantt() {
+        const projectMap = buildProjectMap(rawTasks);
+        createDynamicColorStyle(projectMap);
+
+        const filtered = currentStatus === '全部'
+            ? rawTasks
+            : rawTasks.filter(task => task.status === currentStatus);
+
+        const tasks = filtered.map(task => toGanttTask(task, projectMap));
+
+        document.getElementById('gantt').innerHTML = '';
+
+        if (!tasks.length) {
+            document.getElementById('gantt').innerHTML = '<p style="padding:18px;color:var(--ink-soft)">此狀態目前沒有任務。</p>';
+            buildLegend(rawTasks, projectMap);
+            return;
+        }
+
+        gantt = new Gantt('#gantt', tasks, {
+            view_mode: 'Day',
+            language: 'zh',
+            popup: (task) => {
+                const duration = Math.ceil((new Date(task.end) - new Date(task.start)) / (1000 * 60 * 60 * 24)) + 1;
+                return `
+                    <div class="task-popup">
+                        <strong>${task.name}</strong>
+                        <div class="tag">${task._project}・${task._status}</div>
+                        <div class="meta">
+                            <span>${task.start} → ${task.end}</span>
+                            <span>${duration} 天</span>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        buildLegend(filtered, projectMap);
+    }
 
     async function loadGantt() {
         try {
             const response = await fetch(API_URL);
             const data = await response.json();
-            
-            // 將 Google Sheets 資料轉換成 Frappe Gantt 接受的格式
-            const tasks = data.map((item, index) => {
-                // 根據狀態決定進度條顏色 (透過 custom_class)
-                let customClass = "預計";
-                if(item["狀態"] === "進行中" || item["狀態"] === "完成") customClass = "進行中";
-                if(item["狀態"] === "延遲") customClass = "延遲";
+
+            rawTasks = data.map((item, index) => {
+                const start = normalizeDate(item['預計開始'] || item['開始'] || item['Start']);
+                const end = normalizeDate(item['預計結束'] || item['結束'] || item['End']);
+                const status = item['狀態'] || '預計';
+                const project = pickProjectName(item);
 
                 return {
-                    id: item["任務ID"] || `Task_${index}`,
-                    name: `${item["品項"]} (${item["狀態"]})`,
-                    start: item["預計開始"].split('T')[0], // 格式化日期
-                    end: item["預計結束"].split('T')[0],
-                    progress: item["狀態"] === "完成" ? 100 : (item["狀態"] === "進行中" ? 50 : 0),
-                    dependencies: '', // 若有相依性可以在這設定
-                    custom_class: customClass
+                    id: item['任務ID'] || `Task_${index + 1}`,
+                    name: item['品項'] || item['任務'] || `未命名任務 ${index + 1}`,
+                    start,
+                    end,
+                    status,
+                    project
                 };
-            }).filter(task => task.start && task.end); // 過濾掉沒有日期的空資料
+            }).filter(task => task.start && task.end);
 
-            // 渲染甘特圖
-            var gantt = new Gantt("#gantt", tasks, {
-                view_mode: 'Day',
-                language: 'zh'
-            });
-
+            buildStatusBoard(rawTasks);
+            buildStatusFilter(rawTasks);
+            renderGantt();
         } catch (error) {
-            console.error("讀取資料失敗:", error);
-            document.getElementById("gantt").innerHTML = "無法載入排程資料，請確認 API 網址是否正確。";
+            console.error('讀取資料失敗:', error);
+            document.getElementById('gantt').innerHTML = '無法載入排程資料，請確認 API 網址是否正確或 Apps Script 是否已部署為可公開存取。';
         }
     }
 
     loadGantt();
 </script>
-
 </body>
 </html>
