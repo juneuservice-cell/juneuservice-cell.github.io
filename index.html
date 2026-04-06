@@ -3,40 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>典籍色排程・可自訂色塊版</title>
+    <title>典籍色排程・反主流專案日曆</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
     <style>
         :root {
-            --bg: #f2f1ef;
-            --panel: #ffffff;
-            --panel-soft: #f6f5f3;
-            --ink: #282727;
-            --ink-soft: #7e7a74;
-            --accent: #f06f2a;
-            --accent-soft: rgba(240, 111, 42, 0.15);
-            --line: rgba(28, 27, 26, 0.11);
+            --bg: #151515;
+            --panel: #1f1f1f;
+            --panel-soft: #262626;
+            --ink: #f2eee8;
+            --ink-soft: #b9b2a7;
+            --accent: #ff7a1a;
+            --accent-soft: rgba(255, 122, 26, 0.2);
+            --line: rgba(255, 255, 255, 0.08);
             --radius: 18px;
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             margin: 0;
             font-family: 'Noto Sans TC', 'Segoe UI', sans-serif;
-            padding: 20px;
-            background: var(--bg);
+            padding: 28px;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(255, 122, 26, 0.18), transparent 30%),
+                radial-gradient(circle at 90% 10%, rgba(255, 214, 175, 0.11), transparent 20%),
+                var(--bg);
             color: var(--ink);
         }
 
         .container {
-            max-width: 1480px;
+            max-width: 1400px;
             margin: auto;
-            background: var(--panel);
+            background: linear-gradient(145deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
             border: 1px solid var(--line);
-            border-radius: 22px;
-            padding: 20px;
-            box-shadow: 0 12px 28px rgba(0,0,0,0.06);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.45);
         }
 
         .hero {
@@ -44,93 +49,67 @@
             justify-content: space-between;
             align-items: flex-start;
             gap: 16px;
-            margin-bottom: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
         }
 
         h1 {
             margin: 0;
             letter-spacing: 1px;
-            font-size: clamp(1.4rem, 2.4vw, 2rem);
+            font-size: clamp(1.5rem, 2.4vw, 2.2rem);
         }
 
         .subtitle {
             margin-top: 8px;
-            color: #4d4a46;
-            line-height: 1.6;
-            max-width: 900px;
-        }
-
-        .surface {
-            display: grid;
-            grid-template-columns: 260px 1fr 280px;
-            gap: 14px;
-            align-items: start;
-        }
-
-        .left-panel,
-        .right-panel {
-            background: var(--panel-soft);
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            padding: 14px;
-        }
-
-        .month-title { margin: 0; font-size: 1.35rem; }
-
-        .mini-calendar {
-            margin-top: 10px;
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 6px;
-            font-size: 0.85rem;
             color: var(--ink-soft);
-        }
-
-        .mini-calendar span {
-            text-align: center;
-            padding: 6px 0;
-            border-radius: 8px;
-            background: #fff;
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .mini-calendar .today {
-            background: #ffe0ce;
-            color: #b6470f;
-            font-weight: 700;
+            line-height: 1.6;
+            max-width: 860px;
         }
 
         .status-board {
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
-            margin: 14px 0;
+            margin: 20px 0;
         }
 
         .status-card {
-            min-width: 124px;
-            background: #fff;
+            min-width: 140px;
+            background: var(--panel);
             border: 1px solid var(--line);
             padding: 12px 14px;
             border-radius: 14px;
         }
 
-        .status-card .label { color: var(--ink-soft); font-size: 0.84rem; }
-        .status-card .value { margin-top: 8px; font-size: 1.5rem; font-weight: 700; }
+        .status-card .label {
+            color: var(--ink-soft);
+            font-size: 0.84rem;
+        }
+
+        .status-card .value {
+            margin-top: 8px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
 
         .toolbar {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
             gap: 10px;
-            margin: 10px 0 12px;
+            margin: 12px 0 16px;
         }
 
-        .chip-list { display: flex; gap: 8px; flex-wrap: wrap; }
+        .chip-list {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
 
         .chip-btn {
             border: 1px solid var(--line);
-            background: #fff;
+            background: var(--panel-soft);
             color: var(--ink);
             border-radius: 999px;
             padding: 8px 12px;
@@ -145,24 +124,78 @@
             transform: translateY(-1px);
         }
 
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr minmax(220px, 290px);
+            gap: 16px;
+            align-items: start;
+        }
+
         #gantt-wrap {
-            background: #fff;
+            background: #171717;
             border: 1px solid var(--line);
             border-radius: var(--radius);
             padding: 14px;
             overflow-x: auto;
         }
 
+        #project-legend {
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--panel);
+            padding: 16px;
+        }
+
+        #project-legend h2 {
+            margin: 0 0 10px;
+            font-size: 1rem;
+            color: var(--ink-soft);
+        }
+
+        .legend-item {
+            display: grid;
+            grid-template-columns: 16px 1fr auto;
+            gap: 10px;
+            align-items: center;
+            border-bottom: 1px dashed rgba(255,255,255,0.08);
+            padding: 8px 0;
+        }
+
+        .legend-item:last-child {
+            border-bottom: none;
+        }
+
+        .swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
+        }
+
+        .legend-count {
+            color: var(--ink-soft);
+            font-size: 0.85rem;
+        }
+
         .gantt .grid-row,
-        .gantt .grid-header { fill: #faf9f8; }
+        .gantt .grid-header {
+            fill: #191919;
+        }
 
         .gantt .lower-text,
         .gantt .upper-text,
         .gantt .bar-label,
-        .gantt .tick text { fill: #3a3835; }
+        .gantt .tick text {
+            fill: #ece7df;
+        }
 
-        .gantt .today-highlight { fill: rgba(240, 111, 42, 0.08); }
-        .gantt .bar-progress { fill: rgba(0,0,0,0.15); }
+        .gantt .today-highlight {
+            fill: rgba(255, 122, 26, 0.09);
+        }
+
+        .gantt .bar-progress {
+            fill: rgba(255,255,255,0.2);
+        }
 
         .gantt .bar-wrapper.status-延遲 .bar {
             stroke: #ff8b66;
@@ -173,18 +206,21 @@
         .popup-wrapper {
             border-radius: 12px !important;
             border: 1px solid var(--line) !important;
-            background: #fff !important;
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18) !important;
+            background: #1c1c1c !important;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35) !important;
         }
 
-        .task-popup { color: #242321; min-width: 240px; }
+        .task-popup {
+            color: var(--ink);
+            min-width: 240px;
+        }
 
         .task-popup .meta {
             display: flex;
             justify-content: space-between;
             margin-top: 8px;
             font-size: 0.88rem;
-            color: #666059;
+            color: var(--ink-soft);
         }
 
         .tag {
@@ -195,79 +231,13 @@
             border-radius: 999px;
             background: var(--accent-soft);
             border: 1px solid rgba(255, 122, 26, 0.5);
-            color: #9a450d;
-        }
-
-        #project-legend { display: grid; gap: 8px; }
-
-        .legend-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-
-        .legend-head h2 { margin: 0; color: #5f5a53; font-size: 0.95rem; }
-
-        .legend-item {
-            display: grid;
-            grid-template-columns: 16px 1fr 26px auto;
-            gap: 8px;
-            align-items: center;
-            border-bottom: 1px dashed rgba(0,0,0,0.12);
-            padding: 8px 0;
-        }
-
-        .legend-item:last-child { border-bottom: none; }
-
-        .swatch {
-            width: 14px;
-            height: 14px;
-            border-radius: 3px;
-            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2);
-        }
-
-        .legend-count { color: var(--ink-soft); font-size: 0.85rem; }
-
-        .legend-item input[type="color"] {
-            width: 24px;
-            height: 24px;
-            border: none;
-            background: transparent;
-            padding: 0;
-            cursor: pointer;
-        }
-
-        .btn-soft {
-            border: 1px solid var(--line);
-            background: #fff;
-            border-radius: 999px;
-            padding: 6px 10px;
-            cursor: pointer;
-            color: #5f5a53;
-        }
-
-        .right-panel section {
-            background: #fff;
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            padding: 12px;
-            margin-bottom: 10px;
-        }
-
-        .right-panel h3 { margin: 0 0 10px; font-size: 1rem; }
-
-        .help-note {
-            margin: 0;
-            font-size: 0.88rem;
-            line-height: 1.5;
-            color: #64605a;
+            color: #ffd6af;
         }
 
         @media (max-width: 980px) {
-            .surface { grid-template-columns: 1fr; }
-            .left-panel, .right-panel { order: 2; }
-            #main-center { order: 1; }
+            .layout {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -275,98 +245,48 @@
 <div class="container">
     <div class="hero">
         <div>
-            <h1>📚 典籍色排程</h1>
-            <p class="subtitle">參考你附圖的三欄節奏：左側月曆、中央時程、右側摘要。你可以直接在右側自訂每個專案色塊。</p>
+            <h1>📚 典籍色排程總覽</h1>
+            <p class="subtitle">不是冷冰冰的表格，而是有呼吸感的時程畫布。每個專案都有自己的「典籍色」，一眼辨識脈絡、節奏與風險。</p>
         </div>
     </div>
 
-    <div class="surface">
-        <aside class="left-panel">
-            <h2 class="month-title" id="month-label">月份</h2>
-            <div class="mini-calendar" id="mini-calendar"></div>
-        </aside>
+    <div class="status-board" id="status-board"></div>
 
-        <main id="main-center">
-            <div class="status-board" id="status-board"></div>
-            <div class="toolbar">
-                <div class="chip-list" id="status-filter"></div>
-            </div>
-            <div id="gantt-wrap">
-                <div id="gantt"></div>
-            </div>
-        </main>
+    <div class="toolbar">
+        <div class="chip-list" id="status-filter"></div>
+    </div>
 
-        <aside class="right-panel">
-            <section>
-                <h3>專案色塊設定</h3>
-                <div id="project-legend">
-                    <div class="legend-head">
-                        <h2>色塊 / 任務數</h2>
-                        <button id="reset-colors" class="btn-soft">重置色塊</button>
-                    </div>
-                    <div id="legend-list"></div>
-                </div>
-            </section>
-            <section>
-                <h3>資料欄位提醒</h3>
-                <p class="help-note">若你要改 Apps Script 或 Google Sheet，建議至少帶：<b>專案名稱</b>、<b>品項/任務</b>、<b>預計開始</b>、<b>預計結束</b>、<b>狀態</b>。</p>
-            </section>
+    <div class="layout">
+        <div id="gantt-wrap">
+            <div id="gantt"></div>
+        </div>
+
+        <aside id="project-legend">
+            <h2>專案典籍色索引</h2>
+            <div id="legend-list"></div>
         </aside>
     </div>
 </div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxTVMC1MKxpIcqUoQj4IUr85KPc0RAMkuJRlRenBJFyh56L_U34vewRccQA8N1ITSosvA/exec";
-    const STORAGE_KEY = 'project-color-overrides-v1';
 
     const PALETTE = [
-        { name: '赭石', color: '#C46A44' },
-        { name: '黛藍', color: '#4C6F95' },
-        { name: '松花', color: '#83A15D' },
-        { name: '胭脂', color: '#B95E73' },
-        { name: '石青', color: '#5292A7' },
-        { name: '琥珀', color: '#CC9548' },
-        { name: '藕荷', color: '#9A7FB0' },
-        { name: '玄墨', color: '#707070' }
+        { name: '赭石', color: '#B35C37' },
+        { name: '黛藍', color: '#2F4F72' },
+        { name: '松花', color: '#7A9D54' },
+        { name: '胭脂', color: '#AA3D52' },
+        { name: '石青', color: '#3C7494' },
+        { name: '琥珀', color: '#C4822E' },
+        { name: '藕荷', color: '#8B6D9C' },
+        { name: '玄墨', color: '#525252' }
     ];
 
     let rawTasks = [];
     let gantt;
     let currentStatus = '全部';
-    let colorOverrides = loadColorOverrides();
 
     const slugify = (text = '') => text.toString().replace(/[^\w\u4e00-\u9fff-]/g, '-');
-
-    function loadColorOverrides() {
-        try {
-            return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-        } catch (_) {
-            return {};
-        }
-    }
-
-    function saveColorOverrides() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(colorOverrides));
-    }
-
-    function buildMiniCalendar() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth();
-        const today = now.getDate();
-        document.getElementById('month-label').textContent = `${year}年 ${month + 1}月`;
-
-        const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const labels = ['日', '一', '二', '三', '四', '五', '六'];
-        const cells = [];
-
-        labels.forEach(label => cells.push(`<span style="font-weight:700;background:transparent;border:none">${label}</span>`));
-        for (let i = 0; i < firstDay; i++) cells.push('<span style="background:transparent;border:none"></span>');
-        for (let day = 1; day <= daysInMonth; day++) cells.push(`<span class="${day === today ? 'today' : ''}">${day}</span>`);
-
-        document.getElementById('mini-calendar').innerHTML = cells.join('');
-    }
 
     function pickProjectName(item) {
         return item['專案'] || item['專案名稱'] || item['Project'] || (item['品項'] || '未分類').split(/[／/|-]/)[0].trim() || '未分類';
@@ -382,8 +302,7 @@
     function buildProjectMap(items) {
         const projectNames = [...new Set(items.map(pickProjectName))];
         return projectNames.reduce((acc, name, index) => {
-            const preset = PALETTE[index % PALETTE.length];
-            acc[name] = { ...preset, color: colorOverrides[name] || preset.color };
+            acc[name] = PALETTE[index % PALETTE.length];
             return acc;
         }, {});
     }
@@ -452,22 +371,13 @@
                 <div class="legend-item">
                     <span class="swatch" style="background:${color}"></span>
                     <div>${project}<br><small style="color:var(--ink-soft)">${tone}</small></div>
-                    <input type="color" value="${color}" data-project="${project}" title="自訂色塊">
                     <span class="legend-count">${count}</span>
                 </div>
             `;
         }).join('');
-
-        document.querySelectorAll('#legend-list input[type="color"]').forEach(input => {
-            input.addEventListener('input', (e) => {
-                colorOverrides[e.target.dataset.project] = e.target.value;
-                saveColorOverrides();
-                renderGantt();
-            });
-        });
     }
 
-    function toGanttTask(task) {
+    function toGanttTask(task, projectMap) {
         const slug = slugify(task.project);
         const status = task.status || '預計';
         return {
@@ -491,7 +401,8 @@
             ? rawTasks
             : rawTasks.filter(task => task.status === currentStatus);
 
-        const tasks = filtered.map(task => toGanttTask(task));
+        const tasks = filtered.map(task => toGanttTask(task, projectMap));
+
         document.getElementById('gantt').innerHTML = '';
 
         if (!tasks.length) {
@@ -519,14 +430,6 @@
         });
 
         buildLegend(filtered, projectMap);
-    }
-
-    function bindStaticActions() {
-        document.getElementById('reset-colors').addEventListener('click', () => {
-            colorOverrides = {};
-            saveColorOverrides();
-            renderGantt();
-        });
     }
 
     async function loadGantt() {
@@ -559,8 +462,6 @@
         }
     }
 
-    buildMiniCalendar();
-    bindStaticActions();
     loadGantt();
 </script>
 </body>
