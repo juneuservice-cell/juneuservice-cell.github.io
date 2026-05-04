@@ -8,114 +8,29 @@
     <title>俊宥機電員工打卡系統</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕐</text></svg>">
     <style>
+        /* CSS  */
         * { box-sizing: border-box; }
-        body {
-            font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", "Helvetica Neue", Arial, sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-        .card {
-            max-width: 400px;
-            width: 90%;
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        h2 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 8px;
-        }
-        .clock {
-            text-align: center;
-            font-size: 28px;
-            font-weight: bold;
-            color: #3498db;
-            margin-bottom: 6px;
-            font-variant-numeric: tabular-nums;
-        }
-        .date-display {
-            text-align: center;
-            font-size: 14px;
-            color: #7f8c8d;
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin: 15px 0 5px;
-            color: #546e7a;
-            font-weight: bold;
-        }
-        select, input {
-            font-size: 18px;
-            padding: 12px;
-            width: 100%;
-            border: 1px solid #cfd8dc;
-            border-radius: 10px;
-            outline: none;
-            transition: border 0.3s;
-            background-color: #fff;
-        }
-        select:focus, input:focus {
-            border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
-        }
-        .note-hint {
-            display: none;
-            font-size: 13px;
-            color: #e67e22;
-            margin-top: 4px;
-        }
-        .note-hint.visible {
-            display: block;
-        }
-        button {
-            margin-top: 30px;
-            width: 100%;
-            padding: 15px;
-            font-size: 20px;
-            font-weight: bold;
-            background: #3498db;
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: background 0.3s, transform 0.1s;
-        }
+        body { font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { max-width: 400px; width: 90%; background: #ffffff; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 8px; }
+        .clock { text-align: center; font-size: 28px; font-weight: bold; color: #3498db; margin-bottom: 6px; font-variant-numeric: tabular-nums; }
+        .date-display { text-align: center; font-size: 14px; color: #7f8c8d; margin-bottom: 20px; }
+        label { display: block; margin: 15px 0 5px; color: #546e7a; font-weight: bold; }
+        select, input { font-size: 18px; padding: 12px; width: 100%; border: 1px solid #cfd8dc; border-radius: 10px; outline: none; transition: border 0.3s; background-color: #fff; }
+        select:focus, input:focus { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15); }
+        .note-hint { display: none; font-size: 13px; color: #e67e22; margin-top: 4px; }
+        .note-hint.visible { display: block; }
+        button { margin-top: 30px; width: 100%; padding: 15px; font-size: 20px; font-weight: bold; background: #3498db; color: #fff; border: none; border-radius: 12px; cursor: pointer; transition: background 0.3s, transform 0.1s; }
         button:hover { background: #2980b9; }
         button:active { transform: scale(0.98); }
         button:disabled { background: #bdc3c7; cursor: not-allowed; transform: none; }
-        #status {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 16px;
-            min-height: 24px;
-        }
+        #status { text-align: center; margin-top: 15px; font-size: 16px; min-height: 24px; }
         .loading { color: #3498db; }
         .success { color: #27ae60; font-weight: bold; }
         .error { color: #e74c3c; font-weight: bold; }
-
-        /* Success checkmark animation */
-        .success-icon {
-            display: none;
-            text-align: center;
-            font-size: 48px;
-            margin-top: 10px;
-            animation: popIn 0.4s ease-out;
-        }
-        .success-icon.visible {
-            display: block;
-        }
-        @keyframes popIn {
-            0% { transform: scale(0); opacity: 0; }
-            70% { transform: scale(1.2); }
-            100% { transform: scale(1); opacity: 1; }
-        }
+        .success-icon { display: none; text-align: center; font-size: 48px; margin-top: 10px; animation: popIn 0.4s ease-out; }
+        .success-icon.visible { display: block; }
+        @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.2); } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
@@ -153,114 +68,68 @@
 </div>
 
 <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbzKtA8YVvvVGsnD5e3nATaG0-cPOFtD7OeIuRAYxEP2b6MI7zetomUY4eO_tXN8Y83LxQ/exec";
+    // ⚠️ 記得替換成你重新部署後產生的最新網址
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbyw5wZBQOUj2-KUQ5Yo-7zkCDGCby35d9tr_Hb_MpJl2xDJHpd5fKGBOs5jTRgQQVz9Iw/exec";
     const statusDiv = document.getElementById("status");
     const submitBtn = document.getElementById("submitBtn");
     const successIcon = document.getElementById("successIcon");
     const noteHint = document.getElementById("noteHint");
     const actionSelect = document.getElementById("action");
 
-    // Exempt GPS list
-    const exemptList = ["陳俊欽", "李韋逸","黃熙家"];
-
-    // Real-time clock
     function updateClock() {
         const now = new Date();
         const timeStr = now.toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
         document.getElementById("clock").textContent = timeStr;
-
         const dateStr = now.toLocaleDateString("zh-TW", { year: "numeric", month: "long", day: "numeric", weekday: "long" });
         document.getElementById("dateDisplay").textContent = dateStr;
     }
     updateClock();
     setInterval(updateClock, 1000);
 
-    // Show hint when "其他" is selected
     actionSelect.addEventListener("change", function() {
         noteHint.classList.toggle("visible", this.value === "其他");
     });
 
-    // Prevent double submission
     let isSubmitting = false;
 
     document.getElementById("punchForm").addEventListener("submit", function(e) {
         e.preventDefault();
-
-        // Prevent double submit
         if (isSubmitting) return;
 
         const name = document.getElementById("name").value.trim();
         const action = document.getElementById("action").value.trim();
         const extra = document.getElementById("extra").value.trim();
 
-        // Form validation
-        if (!name) {
-            updateStatus("請選擇姓名", "error", false);
-            document.getElementById("name").focus();
-            return;
-        }
-        if (!action) {
-            updateStatus("請選擇動作", "error", false);
-            document.getElementById("action").focus();
-            return;
-        }
-        if (action === "其他" && !extra) {
-            updateStatus("選擇「其他」時請填寫備註", "error", false);
-            document.getElementById("extra").focus();
-            return;
-        }
+        if (!name) { updateStatus("請選擇姓名", "error", false); document.getElementById("name").focus(); return; }
+        if (!action) { updateStatus("請選擇動作", "error", false); document.getElementById("action").focus(); return; }
+        if (action === "其他" && !extra) { updateStatus("選擇「其他」時請填寫備註", "error", false); document.getElementById("extra").focus(); return; }
 
-        // Disable immediately to prevent double click
         isSubmitting = true;
         updateStatus("正在處理中...", "loading", true);
-
-        // Check if GPS is needed
-        if (exemptList.includes(name)) {
-            sendData(name, action, extra, "", "");
-        } else {
-            if (!navigator.geolocation) {
-                updateStatus("錯誤：您的瀏覽器不支援 GPS 定位", "error", false);
-                isSubmitting = false;
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    var lat = position.coords.latitude;
-                    var lng = position.coords.longitude;
-                    sendData(name, action, extra, lat, lng);
-                },
-                function(error) {
-                    var msg = "定位失敗，請開啟 GPS 權限";
-                    if (error.code === 1) msg = "請允許網站讀取位置資訊才能打卡";
-                    updateStatus("錯誤：" + msg, "error", false);
-                    isSubmitting = false;
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
-            );
-        }
+        
+        // 直接傳送資料，無須 GPS
+        sendData(name, action, extra);
     });
 
-    function sendData(name, action, extra, lat, lng) {
-        var params = new URLSearchParams({
-            name: name,
-            action: action,
-            extra: extra,
-            lat: lat,
-            lng: lng
-        });
-
+    function sendData(name, action, extra) {
+        var params = new URLSearchParams({ name: name, action: action, extra: extra });
         var finalUrl = scriptUrl + "?" + params.toString();
 
-        fetch(finalUrl, { mode: "no-cors" })
-            .then(function() {
-                successIcon.classList.add("visible");
-                updateStatus("打卡完成！此視窗將於 3 秒後重整", "success", true);
-                setTimeout(function() {
-                    location.reload();
-                }, 3000);
+        fetch(finalUrl)
+            .then(function(response) {
+                return response.text();
             })
-            .catch(function() {
+            .then(function(text) {
+                if (text.indexOf("失敗") !== -1 || text.indexOf("錯誤") !== -1) {
+                    updateStatus(text, "error", false);
+                    isSubmitting = false;
+                } else {
+                    successIcon.classList.add("visible");
+                    updateStatus("打卡完成！此視窗將於 3 秒後重整", "success", true);
+                    setTimeout(function() { location.reload(); }, 3000);
+                }
+            })
+            .catch(function(error) {
                 updateStatus("連線錯誤，請稍後再試", "error", false);
                 isSubmitting = false;
             });
